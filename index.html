@@ -2,49 +2,521 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sumadora Simple</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Samuel Bonivento — Task Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3f3f3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 50px;
+    :root {
+      --bg: #f9fdf5;
+      --white: #ffffff;
+      --border: #dcecd0;
+      --border2: #c8ddb8;
+      --accent: #728156;
+      --accent2: #88976c;
+      --accent3: #b6c99c;
+      --accent4: #cfe1bb;
+      --accent5: #e8f4dc;
+      --text: #2c3320;
+      --text2: #5a6e45;
+      --muted: #9aac84;
+      --high: #d64c2a;
+      --med: #c49a00;
+      --low: #728156;
+      --shadow: 0 2px 12px rgba(114,129,86,0.08);
+      --shadow-md: 0 4px 24px rgba(114,129,86,0.13);
     }
-    input, button {
-      padding: 10px;
-      margin: 5px;
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(114,129,86,0.07) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .top-bar {
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent));
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+    }
+
+    .header {
+      position: fixed;
+      top: 3px; left: 0; right: 0;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
       font-size: 16px;
     }
-    .resultado {
-      margin-top: 20px;
-      font-weight: bold;
+
+    .brand-text { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); font-weight: 500; }
+    .brand-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1px; }
+
+    .header-tags { display: flex; gap: 6px; }
+
+    .htag {
+      font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2); color: var(--text2); background: var(--accent5);
     }
+    .htag.green { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .app {
+      position: relative; z-index: 1;
+      max-width: 820px; margin: 0 auto;
+      padding: 108px 24px 100px;
+    }
+
+    .hero { margin-bottom: 28px; animation: fadeUp 0.5s ease both; }
+
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent2);
+      letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-eyebrow::before { content: ''; width: 20px; height: 1.5px; background: var(--accent2); }
+
+    .hero h1 { font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; line-height: 1; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; animation: fadeUp 0.5s ease 0.05s both; }
+
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border); border-radius: 14px;
+      padding: 18px 20px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+    .stat-card.s1::after { background: var(--accent); }
+    .stat-card.s2::after { background: var(--accent3); }
+    .stat-card.s3::after { background: var(--accent4); }
+
+    .stat-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+    .progress-card {
+      background: var(--white); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow);
+      animation: fadeUp 0.5s ease 0.1s both;
+    }
+    .progress-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .progress-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase; }
+    .progress-pct { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--accent); }
+    .progress-track { height: 6px; background: var(--accent5); border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent3)); border-radius: 999px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+
+    .add-card {
+      background: var(--white); border: 1px solid var(--border); border-radius: 16px;
+      padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow);
+      animation: fadeUp 0.5s ease 0.15s both;
+    }
+    .form-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+    .form-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 10px; }
+    .form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    input[type="text"], input[type="date"], select {
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 11px 14px; font-family: 'Instrument Sans', sans-serif; font-size: 14px;
+      color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s; width: 100%;
+    }
+    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(114,129,86,0.1); background: white; }
+    input::placeholder { color: var(--muted); }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.4) sepia(1) hue-rotate(60deg); cursor: pointer; }
+
+    .btn-add {
+      background: var(--accent); color: white; border: none; border-radius: 10px;
+      padding: 11px 22px; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
+    }
+    .btn-add:hover { background: var(--accent2); box-shadow: 0 6px 20px rgba(114,129,86,0.25); transform: translateY(-1px); }
+    .btn-add:active { transform: translateY(0); }
+
+    .filters { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; animation: fadeUp 0.5s ease 0.2s both; }
+
+    .filter-btn {
+      font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 7px 14px; border: 1.5px solid var(--border); background: var(--white); color: var(--text2); border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent5); }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .filter-sep { width: 1px; background: var(--border); margin: 0 2px; }
+
+    .task-list { display: flex; flex-direction: column; gap: 8px; animation: fadeUp 0.5s ease 0.25s both; }
+
+    .task-item {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 16px 18px; display: grid; grid-template-columns: auto 1fr auto;
+      gap: 14px; align-items: center; transition: all 0.2s ease;
+      position: relative; overflow: hidden; box-shadow: var(--shadow);
+    }
+    .task-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+    .task-item.prio-high::before { background: var(--high); }
+    .task-item.prio-med::before { background: var(--med); }
+    .task-item.prio-low::before { background: var(--low); }
+    .task-item:hover { border-color: var(--accent3); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .task-item.done { background: var(--accent5); border-color: var(--accent4); box-shadow: none; }
+    .task-item.done .task-title { text-decoration: line-through; color: var(--muted); }
+
+    .task-check {
+      width: 22px; height: 22px; border: 2px solid var(--border2); border-radius: 7px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0; background: white;
+    }
+    .task-check:hover { border-color: var(--accent); background: var(--accent5); }
+    .task-check.checked { background: var(--accent); border-color: var(--accent); }
+    .task-check.checked::after { content: '✓'; color: white; font-size: 13px; font-weight: 700; }
+
+    .task-body { min-width: 0; }
+    .task-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s; }
+    .task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .prio-badge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; font-weight: 500; }
+    .prio-badge.high { background: rgba(214,76,42,0.1); color: var(--high); }
+    .prio-badge.med { background: rgba(196,154,0,0.1); color: var(--med); }
+    .prio-badge.low { background: var(--accent5); color: var(--accent); }
+
+    .task-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+    .task-date.overdue { color: var(--high); font-weight: 500; }
+
+    .task-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s; }
+    .task-item:hover .task-actions { opacity: 1; }
+
+    .btn-icon {
+      width: 30px; height: 30px; border: 1.5px solid var(--border); background: var(--bg);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 12px; transition: all 0.2s; color: var(--muted);
+    }
+    .btn-icon:hover { border-color: var(--high); color: var(--high); background: rgba(214,76,42,0.06); }
+
+    .empty { text-align: center; padding: 60px 20px; background: var(--white); border: 1.5px dashed var(--border2); border-radius: 16px; }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+    .empty p { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); letter-spacing: 0.05em; }
+
+    .footer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border); padding: 12px 40px;
+      display: flex; justify-content: space-between; align-items: center; z-index: 50;
+    }
+    .footer-brand { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+    .footer-stack { display: flex; gap: 6px; }
+    .stack-tag { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--border2); color: var(--text2); border-radius: 4px; background: var(--accent5); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideOut { from { opacity: 1; transform: translateX(0); max-height: 80px; margin-bottom: 8px; } to { opacity: 0; transform: translateX(20px); max-height: 0; margin-bottom: 0; padding: 0; border: none; } }
+
+    .task-item { animation: slideIn 0.3s ease both; }
+    .task-item.removing { animation: slideOut 0.3s ease both; }
   </style>
 </head>
 <body>
-  <h1>Calculadora de Sumas samuel bonivento</h1>
-  
-  <input type="number" id="num1" placeholder="Número 1">
-  <input type="number" id="num2" placeholder="Número 2">
-  <br>
-  <button onclick="sumar()">Sumar</button>
 
-  <div class="resultado" id="resultado"></div>
+<div class="top-bar"></div>
 
-  <script>
-    function sumar() {
-      let n1 = parseFloat(document.getElementById("num1").value);
-      let n2 = parseFloat(document.getElementById("num2").value);
-      let suma = n1 + n2;
+<header class="header">
+  <div class="brand">
+    <div class="brand-icon"></div>
+    <div>
+      <div class="brand-text">Samuel Bonivento</div>
+      <div class="brand-sub">Portfolio / Task Manager</div>
+    </div>
+  </div>
+  <div class="header-tags">
+    <button class="htag green" onclick="checkOverdueTasks()" style="border:none;cursor:pointer" title="Verificar tareas vencidas">🔔 Notificar</button>
+    <button class="htag" onclick="exportPDF()" style="border:1px solid var(--border2);cursor:pointer;background:var(--accent5)">📄 PDF</button>
+    <button class="htag" onclick="exportExcel()" style="border:1px solid var(--border2);cursor:pointer;background:var(--accent5)">📊 Excel</button>
+    <span class="htag green">Full Stack</span>
+    <span class="htag green">Mobile</span>
+  </div>
+</header>
 
-      if (isNaN(suma)) {
-        document.getElementById("resultado").textContent = "Por favor, introduce números válidos.";
-      } else {
-        document.getElementById("resultado").textContent = "Resultado: " + suma;
-      }
+<div class="app">
+  <div class="hero">
+    <div class="hero-eyebrow">Herramienta de productividad</div>
+    <h1>Task <em>Manager</em></h1>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card s1"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Total tareas</div></div>
+    <div class="stat-card s2"><div class="stat-num" id="stat-done">0</div><div class="stat-label">Completadas</div></div>
+    <div class="stat-card s3"><div class="stat-num" id="stat-pending">0</div><div class="stat-label">Pendientes</div></div>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-header">
+      <span class="progress-label">Progreso general</span>
+      <span class="progress-pct" id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <div class="add-card">
+    <div class="form-label">Nueva tarea</div>
+    <div class="form-row">
+      <input type="text" id="task-input" placeholder="¿Qué necesitas hacer?" maxlength="80">
+      <select id="prio-select">
+        <option value="high">🔴 Alta</option>
+        <option value="med" selected>🟡 Media</option>
+        <option value="low">🟢 Baja</option>
+      </select>
+      <button class="btn-add" onclick="addTask()">+ Agregar</button>
+    </div>
+    <div class="form-row2">
+      <input type="date" id="date-input">
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all', this)">Todas</button>
+    <button class="filter-btn" onclick="setFilter('pending', this)">Pendientes</button>
+    <button class="filter-btn" onclick="setFilter('done', this)">Completadas</button>
+    <div class="filter-sep"></div>
+    <button class="filter-btn" onclick="setFilter('high', this)">🔴 Alta</button>
+    <button class="filter-btn" onclick="setFilter('med', this)">🟡 Media</button>
+    <button class="filter-btn" onclick="setFilter('low', this)">🟢 Baja</button>
+  </div>
+
+  <div class="task-list" id="task-list"></div>
+</div>
+
+<div class="footer">
+  <span class="footer-brand">© 2026 Samuel Bonivento</span>
+  <div class="footer-stack">
+    <span class="stack-tag">HTML</span>
+    <span class="stack-tag">CSS</span>
+    <span class="stack-tag">JavaScript</span>
+    <span class="stack-tag">LocalStorage</span>
+  </div>
+</div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem('sb-tasks-v2') || '[]');
+  let currentFilter = 'all';
+
+  function save() { localStorage.setItem('sb-tasks-v2', JSON.stringify(tasks)); }
+
+  function addTask() {
+    const input = document.getElementById('task-input');
+    const prio = document.getElementById('prio-select').value;
+    const date = document.getElementById('date-input').value;
+    const title = input.value.trim();
+    if (!title) {
+      input.focus();
+      input.style.borderColor = 'var(--high)';
+      setTimeout(() => input.style.borderColor = '', 800);
+      return;
     }
-  </script>
+    tasks.unshift({ id: Date.now(), title, prio, date, done: false, createdAt: new Date().toISOString() });
+    input.value = '';
+    document.getElementById('date-input').value = '';
+    save(); render();
+  }
+
+  function toggleDone(id) {
+    const t = tasks.find(t => t.id === id);
+    if (t) { t.done = !t.done; save(); render(); }
+  }
+
+  function deleteTask(id) {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) {
+      el.classList.add('removing');
+      setTimeout(() => { tasks = tasks.filter(t => t.id !== id); save(); render(); }, 280);
+    }
+  }
+
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  function isOverdue(d) { return d && new Date(d) < new Date(new Date().toDateString()); }
+
+  function formatDate(d) {
+    if (!d) return null;
+    return new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function getFiltered() {
+    return tasks.filter(t => {
+      if (currentFilter === 'pending') return !t.done;
+      if (currentFilter === 'done') return t.done;
+      if (['high','med','low'].includes(currentFilter)) return t.prio === currentFilter;
+      return true;
+    });
+  }
+
+  function updateStats() {
+    const total = tasks.length, done = tasks.filter(t => t.done).length;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-done').textContent = done;
+    document.getElementById('stat-pending').textContent = total - done;
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+  }
+
+  function render() {
+    const list = document.getElementById('task-list');
+    const filtered = getFiltered();
+    updateStats();
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>No hay tareas aquí.</p></div>`;
+      return;
+    }
+    const prioLabels = { high: 'Alta', med: 'Media', low: 'Baja' };
+    list.innerHTML = filtered.map(t => {
+      const overdue = isOverdue(t.date) && !t.done;
+      const dateLabel = t.date ? `<span class="task-date ${overdue ? 'overdue' : ''}">${overdue ? '⚠' : '📅'} ${formatDate(t.date)}</span>` : '';
+      return `
+        <div class="task-item prio-${t.prio} ${t.done ? 'done' : ''}" data-id="${t.id}">
+          <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleDone(${t.id})"></div>
+          <div class="task-body">
+            <div class="task-title">${t.title}</div>
+            <div class="task-meta"><span class="prio-badge ${t.prio}">${prioLabels[t.prio]}</span>${dateLabel}</div>
+          </div>
+          <div class="task-actions"><button class="btn-icon" onclick="deleteTask(${t.id})" title="Eliminar">✕</button></div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+  // ── NOTIFICACIONES ──────────────────────────────────────────
+  async function requestNotifications() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+  }
+
+  function checkOverdueTasks() {
+    if (Notification.permission !== 'granted') return;
+    const overdue = tasks.filter(t => !t.done && t.date && new Date(t.date) < new Date(new Date().toDateString()));
+    if (overdue.length > 0) {
+      new Notification('⚠️ Tareas vencidas — Task Manager', {
+        body: `Tienes ${overdue.length} tarea(s) vencida(s):\n${overdue.slice(0,3).map(t => '• ' + t.title).join('\n')}`,
+        icon: 'https://cdn-icons-png.flaticon.com/512/1197/1197460.png'
+      });
+    }
+  }
+
+  requestNotifications().then(() => checkOverdueTasks());
+  // Revisar cada 60 minutos
+  setInterval(checkOverdueTasks, 60 * 60 * 1000);
+
+  // ── EXPORTAR PDF ─────────────────────────────────────────────
+  function exportPDF() {
+    const prioMap = { high: '🔴 Alta', med: '🟡 Media', low: '🟢 Baja' };
+    const rows = tasks.map(t => `
+      <tr>
+        <td>${t.done ? '✅' : '⏳'}</td>
+        <td style="${t.done ? 'text-decoration:line-through;color:#9aac84' : 'font-weight:600'}">${t.title}</td>
+        <td>${prioMap[t.prio]}</td>
+        <td>${t.date ? formatDate(t.date) : '—'}</td>
+      </tr>`).join('');
+
+    const printArea = document.createElement('div');
+    printArea.id = 'print-area';
+    printArea.innerHTML = `
+      <h1>🌿 Task Manager — Samuel Bonivento</h1>
+      <p class="sub">Exportado el ${new Date().toLocaleDateString('es-ES', {day:'2-digit',month:'long',year:'numeric'})}</p>
+      <div class="stats-print">
+        <div><strong>${tasks.length}</strong><br>Total</div>
+        <div><strong>${tasks.filter(t=>t.done).length}</strong><br>Completadas</div>
+        <div><strong>${tasks.filter(t=>!t.done).length}</strong><br>Pendientes</div>
+      </div>
+      <table>
+        <thead><tr><th>Estado</th><th>Tarea</th><th>Prioridad</th><th>Fecha</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    document.body.appendChild(printArea);
+
+    const style = document.createElement('style');
+    style.id = 'print-style';
+    style.innerHTML = `
+      @media print {
+        body > *:not(#print-area) { display: none !important; }
+        #print-area { display: block !important; font-family: sans-serif; padding: 20px; color: #2c3320; }
+        #print-area h1 { color: #728156; margin-bottom: 4px; font-size: 22px; }
+        #print-area .sub { color: #9aac84; font-size: 12px; margin-bottom: 16px; }
+        #print-area .stats-print { display: flex; gap: 16px; margin-bottom: 20px; }
+        #print-area .stats-print div { background: #e8f4dc; padding: 10px 16px; border-radius: 8px; text-align:center; font-size: 13px; }
+        #print-area table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        #print-area th { background: #728156; color: white; padding: 10px; text-align: left; }
+        #print-area td { padding: 8px 10px; border-bottom: 1px solid #dcecd0; }
+        #print-area tr:nth-child(even) td { background: #f9fdf5; }
+      }
+      #print-area { display: none; }`;
+    document.head.appendChild(style);
+
+    window.print();
+
+    setTimeout(() => {
+      document.body.removeChild(printArea);
+      document.head.removeChild(style);
+    }, 1000);
+  }
+
+  // ── EXPORTAR EXCEL (CSV) ──────────────────────────────────────
+  function exportExcel() {
+    const headers = ['Estado', 'Tarea', 'Prioridad', 'Fecha límite', 'Creada'];
+    const prioMap = { high: 'Alta', med: 'Media', low: 'Baja' };
+    const rows = tasks.map(t => [
+      t.done ? 'Completada' : 'Pendiente',
+      `"${t.title.replace(/"/g, '""')}"`,
+      prioMap[t.prio],
+      t.date || '',
+      new Date(t.createdAt).toLocaleDateString('es-ES')
+    ]);
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `tareas_samuel_bonivento_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  if (tasks.length === 0) {
+    tasks = [
+      { id: 1, title: 'Diseñar wireframes del proyecto móvil', prio: 'high', date: '2026-03-01', done: false, createdAt: new Date().toISOString() },
+      { id: 2, title: 'Integrar API REST con Laravel', prio: 'high', date: '2026-02-28', done: true, createdAt: new Date().toISOString() },
+      { id: 3, title: 'Revisar pull requests del equipo', prio: 'med', date: '', done: false, createdAt: new Date().toISOString() },
+      { id: 4, title: 'Actualizar documentación técnica', prio: 'low', date: '2026-03-10', done: false, createdAt: new Date().toISOString() },
+    ];
+    save();
+  }
+
+  render();
+</script>
 </body>
 </html>
